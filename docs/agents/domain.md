@@ -1,18 +1,18 @@
-# Domain Docs
+# ドメインドキュメント
 
-How the engineering skills should consume this repo's domain documentation when exploring the codebase.
+コードベース探索時、各エンジニアリングスキルがこのリポジトリのドメインドキュメントをどう参照すべきかを定めます。
 
-## Before exploring, read these
+## 探索前に読むもの
 
-- **`CONTEXT.md`** at the repo root, or
-- **`CONTEXT-MAP.md`** at the repo root if it exists — it points at one `CONTEXT.md` per context. Read each one relevant to the topic.
-- **`docs/adr/`** — read ADRs that touch the area you're about to work in. In multi-context repos, also check `src/<context>/docs/adr/` for context-scoped decisions.
+- リポジトリルートの**`CONTEXT.md`**、または
+- リポジトリルートの**`CONTEXT-MAP.md`**(存在する場合) — コンテキストごとの`CONTEXT.md`へのポインタ。対象トピックに関連するものをすべて読む。
+- **`docs/adr/`** — 作業対象領域に関わるADRを読む。マルチコンテキストのリポジトリでは`src/<context>/docs/adr/`のコンテキスト固有の決定事項も確認する。
 
-If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The `/domain-modeling` skill (reached via `/grill-with-docs` and `/improve-codebase-architecture`) creates them lazily when terms or decisions actually get resolved.
+これらのファイルが存在しない場合は**黙って進める**。存在しないことを指摘したり、先回りして作成を提案したりしない。`/domain-modeling`スキル(`/grill-with-docs`や`/improve-codebase-architecture`経由で到達)が、用語や決定事項が実際に確定した時点で遅延生成する。
 
-## File structure
+## ファイル構成
 
-Single-context repo (most repos):
+single-contextリポジトリ(ほとんどのリポジトリはこちら):
 
 ```
 /
@@ -23,29 +23,29 @@ Single-context repo (most repos):
 └── src/
 ```
 
-Multi-context repo (presence of `CONTEXT-MAP.md` at the root):
+multi-contextリポジトリ(ルートに`CONTEXT-MAP.md`が存在):
 
 ```
 /
 ├── CONTEXT-MAP.md
-├── docs/adr/                          ← system-wide decisions
+├── docs/adr/                          ← システム全体の決定事項
 └── src/
     ├── ordering/
     │   ├── CONTEXT.md
-    │   └── docs/adr/                  ← context-specific decisions
+    │   └── docs/adr/                  ← コンテキスト固有の決定事項
     └── billing/
         ├── CONTEXT.md
         └── docs/adr/
 ```
 
-## Use the glossary's vocabulary
+## 用語集の語彙を使う
 
-When your output names a domain concept (in an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in `CONTEXT.md`. Don't drift to synonyms the glossary explicitly avoids.
+出力(issueタイトル・リファクタ提案・仮説・テスト名など)でドメイン概念に言及する際は、`CONTEXT.md`で定義された用語を使用する。用語集が明示的に避けている同義語へ流れない。
 
-If the concept you need isn't in the glossary yet, that's a signal — either you're inventing language the project doesn't use (reconsider) or there's a real gap (note it for `/domain-modeling`).
+必要な概念が用語集にまだない場合、それはシグナル — プロジェクトが使わない語を作ってしまっている(要再考)か、実際に語彙の欠落がある(`/domain-modeling`向けにメモしておく)かのいずれか。
 
-## Flag ADR conflicts
+## ADRとの矛盾を報告する
 
-If your output contradicts an existing ADR, surface it explicitly rather than silently overriding:
+出力が既存ADRと矛盾する場合、黙って上書きせず明示的に提示する:
 
-> _Contradicts ADR-0007 (event-sourced orders) — but worth reopening because…_
+> _ADR-0007(イベントソーシングによる注文管理)と矛盾 — ただし以下の理由で再検討の価値あり…_
