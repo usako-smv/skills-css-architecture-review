@@ -3,44 +3,44 @@ name: pdflocss-review
 description: Evaluate whether a project's CSS/SCSS (or CSS-in-JS / scoped CSS) architecture follows PDFLOCSS — layer separation (foundation/layout/component/project/utility), MindBEMding naming, single-class-per-element, class-on-every-tag — and score it with actionable fixes. Then, only if asked, edit the source to apply those fixes. Use when the user wants a PDFLOCSS or CSS-design review of a specific PR (by number) or the whole project, or asks to fix/improve CSS to match PDFLOCSS.
 ---
 
-Scores a codebase's CSS against PDFLOCSS and reports concrete fixes; only edits code when asked to.
+コードベースのCSSをPDFLOCSSと照合してスコア化し、具体的な修正点を報告する。編集は依頼された時のみ行う。
 
-Full rule catalog and scoring table: [PDFLOCSS-RULES.md](PDFLOCSS-RULES.md) — load it at Step 3, not before.
+ルール一覧・採点表: [PDFLOCSS-RULES.md](PDFLOCSS-RULES.md) — Step 3で読み込む(それより前には読まない)。
 
-## Process
+## 手順
 
-### 1. Resolve the target
+### 1. 対象を特定する
 
-- A PR number given (by the user, or as this skill's argument) → target is that PR's diff. Get it via `gh pr diff <number>` and `gh pr view <number> --json files,title,body` (see `docs/agents/issue-tracker.md` if present for repo-specific conventions; otherwise these `gh` commands work directly).
-- No PR number → target is the whole project's CSS.
+- PR番号が指定された場合(ユーザーから、またはこのskillの引数として) → そのPRのdiffが対象。`gh pr diff <number>`と`gh pr view <number> --json files,title,body`で取得する(`docs/agents/issue-tracker.md`があればそのリポジトリ固有の慣習に従う。無ければこの`gh`コマンドをそのまま使う)。
+- PR番号が無い場合 → プロジェクト全体のCSSが対象。
 
-### 2. Collect evaluable files
+### 2. 評価対象ファイルを収集する
 
-Find files carrying CSS design decisions: `.css`/`.scss`/`.sass`/`.less`, plus CSS-in-JS (styled-components/emotion template literals) and scoped-style blocks (Vue/Svelte SFC `<style>`, CSS Modules `*.module.css`). For a PR target, restrict to files touched by the diff.
+CSS設計上の判断を含むファイルを探す: `.css`/`.scss`/`.sass`/`.less`、加えてCSS-in-JS(styled-components/emotionのテンプレートリテラル)やscoped styleブロック(Vue/Svelte SFCの`<style>`、CSS Modulesの`*.module.css`)。PR対象の場合はdiffで変更されたファイルに限定する。
 
-**Directory structure and file layout follow whatever the project's framework already dictates** — don't penalize a Next.js/Nuxt/Rails/etc. layout for not matching PDFLOCSS's literal `foundation/layout/object/...` folder names. What matters is whether the underlying role separation (init/structure/reusable-part/page-specific/fine-tuning) is findable somewhere — naming, file split, or folder.
+**ディレクトリ構成・ファイル配置はプロジェクトのフレームワークが定める形に従ってよい** — Next.js/Nuxt/Rails等のレイアウトが、PDFLOCSSの`foundation/layout/object/...`という物理ディレクトリ名と一致しないことを理由に減点しない。見るべきは、役割の分離(初期化/構造/再利用部品/ページ固有/微調整)が命名・ファイル分割・フォルダのいずれかで判別できるかどうか。
 
-If scoped CSS is in play (CSS Modules, `<style scoped>`, CSS-in-JS), the pseudo-scope PDFLOCSS gets from page+section naming is already provided by the framework — evaluate only what applies *inside* the component (see the "適用範囲の調整" section of the rules file once loaded).
+Scoped CSS(CSS Modules・`<style scoped>`・CSS-in-JS)の場合、PDFLOCSSがページ名+セクション名の命名で得ている疑似スコープはフレームワーク側が既に提供している状態にあたる → コンポーネント*内*で適用されるべき事項のみを評価する(詳細はPDFLOCSS-RULES.mdを読み込んだ後の「適用範囲の調整」セクション参照)。
 
-**No evaluable files found** (whole-project scan turns up none, or the PR touches no CSS-bearing file) → stop here. Report plainly that there's nothing to evaluate and why (e.g. "対象PRにCSS変更なし" / "CSS/SCSSファイルが見つからない"). Do not proceed to scoring, do not post a PR comment.
+**評価できる対象ファイルが無い場合**(プロジェクト全体を走査しても該当なし、またはPRがCSSを含むファイルに触れていない) → ここで停止する。何も評価対象が無いこととその理由を平易に報告する(例: 「対象PRにCSS変更なし」「CSS/SCSSファイルが見つからない」)。採点にも進まず、PRへのコメントも行わない。
 
-### 3. Evaluate
+### 3. 評価する
 
-Load [PDFLOCSS-RULES.md](PDFLOCSS-RULES.md) now. Check every collected file against every rule category that applies to its scope (full-file CSS vs. scoped-component CSS — see the file's applicability notes). For each violation, capture: file:line, the offending code (short quote), which rule it breaks, and its severity (must-fix / should-fix / suggestion) per the rules file's severity guide.
+[PDFLOCSS-RULES.md](PDFLOCSS-RULES.md)をここで読み込む。収集した各ファイルを、そのスコープ(ファイル全体のCSSか、scoped component内のCSSか — 適用範囲の注記を参照)に該当する全ルールカテゴリと照合する。違反ごとに以下を記録する: file:line、該当コードの短い引用、違反しているルール、重大度(must-fix / should-fix / suggestion。ルールファイルの重大度指針に従う)。
 
-Compute the category scores and total (0–100) per the rules file's table, re-scaled if any category is N/A for this codebase's CSS approach.
+ルールファイルの採点表に従いカテゴリ別スコアと合計(0〜100)を算出する。該当プロジェクトのCSSアプローチ上N/Aのカテゴリがあれば、それを除いて再スケールする。
 
-### 4. Report
+### 4. 報告する
 
-- **PR target** → post the score and issue list as a PR comment: `gh pr comment <number> --body "..."`. Structure: total score, one line per category with its sub-score, then issues grouped by severity (must-fix first), each with file:line and a one-line fix.
-- **Whole-project target** → print the same structure directly in this session (no file is written, no comment posted) — it's read from the conversation log, not persisted.
+- **PR対象の場合** → スコアと問題一覧をPRコメントとして投稿する: `gh pr comment <number> --body "..."`。構成: 合計スコア → カテゴリごとのサブスコアを1行ずつ → 重大度別(must-fixを先頭に)にグループ化した問題一覧、各項目にfile:lineと1行の修正案を添える。
+- **プロジェクト全体対象の場合** → 同じ構成をこのセッション内にそのまま出力する(ファイルは作成せず、コメントも投稿しない) — 会話ログから確認する前提。
 
-Keep it usable: a score alone or an issue list alone is half the job — both together are what makes this actionable.
+スコアだけ、問題一覧だけでは半分の仕事にしかならない。両方揃って初めて実用的になる。
 
-### 5. Improve (only when the user asks for fixes)
+### 5. 改善する(修正を依頼された時のみ)
 
-Don't do this unprompted — Steps 1–4 are the full deliverable unless the user separately asks to have the issues fixed.
+依頼されていない限りここは実施しない — ユーザーが別途「修正して」と依頼しない限り、手順1〜4が成果物の全てとなる。
 
-When asked: work through the must-fix issues first, then should-fix, editing the source per the rules file's guidance for the correct PDFLOCSS pattern (not just "delete the violation" — replace it with the compliant form: correct prefix, correct selector, correct layer). Leave suggestions unless the user says to include them.
+依頼された場合: must-fixから着手し、次にshould-fixに取り組む。修正はルールファイルが示す正しいPDFLOCSSパターンに沿って行う(単に違反箇所を削除するだけでなく、正しい接頭辞・正しいセレクタ・正しいレイヤーへと置き換える)。suggestionはユーザーが含めるよう指示しない限り対象外とする。
 
-After editing, re-run Step 3's evaluation on the changed files and report the before/after score plus which issues were fixed vs. skipped (and why, if skipped — e.g. a fix would require a framework-level change out of scope).
+編集後、変更したファイルに対してStep 3の評価を再実行し、修正前後のスコアと、どの問題を修正/スキップしたか(スキップした場合はその理由 — 例えばフレームワーク側の変更が必要でスコープ外、など)を報告する。
