@@ -49,7 +49,7 @@
 - コンポーネントの余白はproject側のクラスで取る(Component節の「marginを持たせない」の対処法。同じ違反をここでも二重に計上しない)。
 - ページ内で複数セクションにまたがる共通スタイルは、**プレースホルダー(`%p-[ページ名]-[モジュール名]`、Element/Modifier無し、ファイル先頭に定義)を`@extend`**してグループ化。rule of threeと最小スタイルの原則も適用。
   - **クラスそのものを`@extend`するのは禁止**(プレースホルダー以外への`@extend`)。判別できない暗黙のスタイル共有を防ぐため。
-- JS連携: 処理起点の要素に`.js-○○`(スタイルは入れない)、処理中/後の状態を表す要素に`.is-○○`(スタイルはここに書く)。両者は別要素でもよい。サイト/ページ全体で共通のJS関連スタイルは`foundation/_mixin.scss`(または`_mixin-js.scss`)に`@mixin js-○○`/`@mixin is-○○`として定義し各セレクタで`@include`。
+- JS連携: 「JS連携(弊社独自ルール)」セクション参照(PDFLOCSS本来の`.is-○○`状態classルールは弊社では採用しない)。
 - **タグセレクタは影響範囲が広くても使わない**(`.p-xxx p {}`のような子孫タグセレクタは禁止)。スタイルが同じ要素には同じクラスを付与する。
 - `@keyframes`はクラスセレクタ内にそのまま書いてよい。
 
@@ -65,12 +65,32 @@
 ### style.scss(エントリ)
 foundation→layout→object(component→project→utility)→libの順で`@import`。foundation内は変数定義→利用の順序に注意(font/color/variable/function/mixin→reset→base)。globでの一括importは`foundation/`以外に使える。
 
+## JS連携(弊社独自ルール)
+
+出典: [website-starter-kit — JSの記述規則](https://github.com/sonicmoov/website-starter-kit#js%E3%81%AE%E8%A8%98%E8%BF%B0%E8%A6%8F%E5%89%87)。PDFLOCSS本来の`.is-○○`状態classルールを置き換える弊社標準。評価はこちらを正とする。
+
+- **起点クラス**: JS操作でHTMLに付与するclassは`js-[ブロック](__[エレメント] ※任意)`(例: `js-modal`, `js-tab__panel`)。スタイルとは別にJS的機能が紐づくことを明示する接頭辞。**`.js-○○`にスタイルを入れない**(ここはPDFLOCSS本来のルールと同じ)。
+- **状態操作**: `.is-○○`のようなclass付与ではなく、以下の優先順位で操作する: ①HTML由来の属性(`disabled`等) → ②ARIA属性(`aria-expanded`等) → ③カスタムデータ属性(`data-state`等)。状態に応じたスタイルはこれらの属性セレクタ(例: `[aria-expanded="true"]`)に対して書く。
+- **共通スタイルの置き場所**: foundation/layout/objectを分離したフルCSS構成では、サイト/ページ横断で使う処理前後の共通スタイルは`foundation/_mixin.scss`(または`_mixin-js.scss`)に`@mixin`定義し各セレクタで`@include`する(PDFLOCSS本来のルール通り)。**Next.js/Nuxt/Rails/Astro等のコンポーネント指向フレームワークでは、foundationへの集約は必須とせずコンポーネント内にスタイルを定義してよい**(コンポーネントが再利用の単位であり、集約するとかえって見通しが悪くなるため)。
+
 ## 適用範囲の調整(重要)
 
-- **ディレクトリ構成はフレームワーク準拠でよい**: Next.js/Nuxt/Rails等の規約とPDFLOCSSの`foundation/layout/object/...`ディレクトリ名が衝突する場合、物理ディレクトリ名の一致は問わない。判定するのは「役割の分離(初期化/構造/再利用部品/ページ固有/微調整)が命名やファイル構成のどこかで区別できているか」。
+- **ディレクトリ構成はフレームワーク準拠でよい**: Next.js/Nuxt/Rails等の規約とPDFLOCSSの`foundation/layout/object/...`ディレクトリ名が衝突する場合、物理ディレクトリ名の一致は問わない。判定するのは「役割の分離(初期化/構造/再利用部品/ページ固有/微調整)が命名やファイル構成のどこかで区別できているか」。Astroの場合は下記「Astro(弊社独自ルール)」を正とする。
 - **Scoped CSS(CSS Modules, Vue/Svelte `<style scoped>`, styled-components等)はコンポーネント内で完結**: ページ横断的なスコープ管理はフレームワークが肩代わりしているため、下表の8カテゴリのうち**ディレクトリ/ファイル構成**と**レイヤー原則の遵守**の2カテゴリ(計25点)はN/Aとし、他の6カテゴリ(計75点)は通常通り適用する。
-  - 適用する6カテゴリの読み替え: 命名規則の一貫性(レイヤー接頭辞`l-`/`c-`/`p-`/`u-`は無くてよいが、BEMのElement/Modifier表記・ケバブケース・連番規則はそのまま適用) / 全タグへのクラス付与 / セレクタ規律 / Componentの独立性(margin・固定幅高さ回避はコンポーネント内でも同じ理由で有効) / JS連携規約(`.js-○○`/`.is-○○`の分離はスコープに関係なく適用) / タブー事項(`!important`不使用等はスコープに関係なく適用)。
+  - 適用する6カテゴリの読み替え: 命名規則の一貫性(レイヤー接頭辞`l-`/`c-`/`p-`/`u-`はコンポーネント単体でも付与する — 単一コンポーネントの大半は再利用パーツなら`c-`、レイアウト用なら`l-`に該当。BEMのElement/Modifier表記・ケバブケース・連番規則も通常通り適用) / **全タグへのクラス付与(緩めない。スコープに関係なく必須)** / セレクタ規律 / Componentの独立性(margin・固定幅高さ回避はコンポーネント内でも同じ理由で有効) / JS連携規約(「JS連携(弊社独自ルール)」参照。スコープに関係なく適用) / タブー事項(`!important`不使用等はスコープに関係なく適用)。
+  - **実装方法**: スタイルを追加する場合は`<style scoped>`内にクラスを宣言して実装する(インラインstyle属性や場当たり的な追加は不可)。Tailwindを導入している場合は、タグにユーティリティクラスを直接大量付与するのではなく、`<style scoped>`内で宣言したクラスに対し`@apply`でユーティリティを合成して実装する(シングルクラス設計を保つため)。
 - N/Aにした2カテゴリは採点対象から除外し、残り75点を100点に比例配分で再スケールする(粒度はカテゴリ単位に固定し、実行者による判断のブレを無くす)。
+
+### Astro(弊社独自ルール)
+
+出典: [website-starter-kit](https://github.com/sonicmoov/website-starter-kit)。
+
+- ディレクトリ構成は[Astro公式のディレクトリ構成](https://docs.astro.build/ja/basics/project-structure/)に準拠する(PDFLOCSSの`foundation/layout/object/...`という物理ディレクトリを新設しない)。
+- 以下はPDFLOCSSから意図的に外れている割当てであり、減点対象にしない:
+  - `src/components/component/`・`src/components/layout/` = PDFLOCSSのComponent・Layoutに相当。
+  - `src/layouts/` = ページ全体を包むBaseLayout的なもの。PDFLOCSSのLayoutレイヤーとは別概念なので混同しない(命名が同じ「layout」でも役割が違う)。
+  - `src/styles/foundation/tokens/` = デザインシステムのトークン置き場。
+  - Layout・ComponentのCSS実体は`src/styles/layout/`や`src/styles/object/component/`に集約するのではなく、`src/components/`配下の各コンポーネントディレクトリに内包する想定。集約用の`index.scss`でまとめて`@import`する。
 
 ## 採点基準(フル評価、100点満点)
 
@@ -82,7 +102,7 @@ foundation→layout→object(component→project→utility)→libの順で`@impo
 | セレクタ規律 | 20 | クラスセレクタのみ・ID/タグセレクタ不使用・詳細度統一 |
 | レイヤー原則の遵守 | 15 | 各層の役割分離、component/project境界の混同がないか |
 | Componentの独立性 | 10 | margin無し・固定幅高さ回避・Modifier拡張・rule of three |
-| JS連携規約 | 5 | `.js-○○`にスタイルを入れていないか、`.is-○○`分離 |
+| JS連携規約 | 5 | `.js-○○`命名・`.js-○○`にスタイルを入れていないか、状態操作がclassでなくHTML/ARIA/データ属性の優先順位に従っているか(「JS連携(弊社独自ルール)」参照) |
 | タブー事項 | 5 | `!important`不使用、クラス直接`@extend`禁止、projectからcomponentの子孫セレクタ上書き禁止(Component節参照) |
 
 N/Aカテゴリがある場合はそのカテゴリを除外し、残り配点の合計を100になるよう比例配分する。
@@ -90,5 +110,5 @@ N/Aカテゴリがある場合はそのカテゴリを除外し、残り配点�
 ## 重大度の目安
 
 - **must-fix**: クラスセレクタ以外の使用、`!important`、component/projectの子孫セレクタ上書き、タグセレクタでのスタイリングなど、原則を直接破るもの。
-- **should-fix**: 命名規則の逸脱(連番のハイフン、Element2階層化等)、rule of three違反のコンポーネント化/コピペ判断ミス。
+- **should-fix**: 命名規則の逸脱(連番のハイフン、Element2階層化等)、rule of three違反のコンポーネント化/コピペ判断ミス、状態操作を`.is-○○`のようなclassで行っている(「JS連携(弊社独自ルール)」の属性優先順位に従っていない)。
 - **suggestion**: セマンティックでない変数名、utilityの乱用気味な使用など、改善の余地はあるが原則違反ではないもの。

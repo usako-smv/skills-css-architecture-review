@@ -19,9 +19,9 @@ description: Evaluate whether a project's CSS/SCSS (or CSS-in-JS / scoped CSS) a
 
 CSS設計上の判断を含むファイルを探す: `.css`/`.scss`/`.sass`/`.less`、加えてCSS-in-JS(styled-components/emotionのテンプレートリテラル)やscoped styleブロック(Vue/Svelte SFCの`<style>`、CSS Modulesの`*.module.css`)。PR対象の場合はdiffで変更されたファイルに限定する。
 
-**ディレクトリ構成・ファイル配置はプロジェクトのフレームワークが定める形に従ってよい** — Next.js/Nuxt/Rails等のレイアウトが、PDFLOCSSの`foundation/layout/object/...`という物理ディレクトリ名と一致しないことを理由に減点しない。見るべきは、役割の分離(初期化/構造/再利用部品/ページ固有/微調整)が命名・ファイル分割・フォルダのいずれかで判別できるかどうか。
+**ディレクトリ構成・ファイル配置はプロジェクトのフレームワークが定める形に従ってよい** — Next.js/Nuxt/Rails等のレイアウトが、PDFLOCSSの`foundation/layout/object/...`という物理ディレクトリ名と一致しないことを理由に減点しない。見るべきは、役割の分離(初期化/構造/再利用部品/ページ固有/微調整)が命名・ファイル分割・フォルダのいずれかで判別できるかどうか。**Astroの場合はPDFLOCSS-RULES.mdの「Astro(弊社独自ルール)」を正とする**(読み込みはStep 3)。
 
-Scoped CSS(CSS Modules・`<style scoped>`・CSS-in-JS)の場合、PDFLOCSSがページ名+セクション名の命名で得ている疑似スコープはフレームワーク側が既に提供している状態にあたる → コンポーネント*内*で適用されるべき事項のみを評価する(詳細はPDFLOCSS-RULES.mdを読み込んだ後の「適用範囲の調整」セクション参照)。
+Scoped CSS(CSS Modules・`<style scoped>`・CSS-in-JS)の場合、PDFLOCSSがページ名+セクション名の命名で得ている疑似スコープはフレームワーク側が既に提供している状態にあたる → コンポーネント*内*で適用されるべき事項のみを評価する。ただし**全てのタグにクラスを入れるルールは緩めない**(詳細・実装ルールはPDFLOCSS-RULES.mdを読み込んだ後の「適用範囲の調整」セクション参照)。
 
 **評価できる対象ファイルが無い場合**(プロジェクト全体を走査しても該当なし、またはPRがCSSを含むファイルに触れていない) → ここで停止する。何も評価対象が無いこととその理由を平易に報告する(例: 「対象PRにCSS変更なし」「CSS/SCSSファイルが見つからない」)。採点にも進まず、PRへのコメントも行わない。
 
