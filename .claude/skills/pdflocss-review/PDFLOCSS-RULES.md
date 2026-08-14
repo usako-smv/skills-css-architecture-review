@@ -36,7 +36,7 @@
 - 対象基準: **複数ページで使われる共通モジュールか**。かつ **rule of three**(3回出てきてから化)。「スタイルが同じ」だけでは化しない — 役割も同じであること。
 - **独立したモジュールとして定義**: 特定タグ・特定の親クラスに依存する書き方(`a.c-button`、`.contact-button .c-button`)は禁止。クラスセレクタ単体・ネスト無しで定義。
 - BEMの階層関係(`.c-breadcrumbs__item`)は可。ただし必ず`.c-[コンポーネント名]`で全体を囲むこと(Blockなしでいきなり`__Element`は不可)。
-- **marginを持たせない**(余白は外側のprojectクラスで取る)。階層を持つcomponentの`__Element`部分がmarginを持つのは許容。
+- **marginを持たせない**(理由: 使い回すたびに余白が邪魔になり再利用性が下がるため)。階層を持つcomponentの`__Element`部分がmarginを持つのは許容。違反はこのカテゴリ(Componentの独立性)でのみ計上する — Project節にも関連記述があるが、あれは「余白はproject側で取る」という対処法の説明であり、別の違反ではない。
 - 固定`width`/`height`はできるだけ持たせない(必要なら`min-width`/`min-height`)。
 - 共通スタイル(最小)のみをcomponent本体に持たせ、差分はModifierで拡張。
 - **上書きの優先順位**(この順で検討): ①componentにprojectクラスを追加してそこで上書き ②componentにModifierを用意 ③utilityクラスで上書き。**projectからcomponentのスタイルを直接上書きする(`.p-profile > .c-media__image`のような子孫セレクタでの上書き)のはPDFLOCSSでは禁止**(本家FLOCSSは許容するが、詳細度が上がるため)。
@@ -46,7 +46,7 @@
 - 各セクションの最上位クラスは`.p-[ページ名]-[セクション名]`自体(Element/Modifier無し)。その配下は`__Element`。
 - **セクションをまたいで別セクションのクラスを流用するのは禁止**(スタイルが同じでも別クラスとして定義しコピペ、または`@extend`)。
 - ハイフンでBEMのネストを深くしない(`&__prof { &-text {} }`のような入れ子は不可。`&__prof-text`とフラットに)。
-- コンポーネントの余白はproject側のクラスで取る(component自体にmarginを持たせない、の裏側)。
+- コンポーネントの余白はproject側のクラスで取る(Component節の「marginを持たせない」の対処法。同じ違反をここでも二重に計上しない)。
 - ページ内で複数セクションにまたがる共通スタイルは、**プレースホルダー(`%p-[ページ名]-[モジュール名]`、Element/Modifier無し、ファイル先頭に定義)を`@extend`**してグループ化。rule of threeと最小スタイルの原則も適用。
   - **クラスそのものを`@extend`するのは禁止**(プレースホルダー以外への`@extend`)。判別できない暗黙のスタイル共有を防ぐため。
 - JS連携: 処理起点の要素に`.js-○○`(スタイルは入れない)、処理中/後の状態を表す要素に`.is-○○`(スタイルはここに書く)。両者は別要素でもよい。サイト/ページ全体で共通のJS関連スタイルは`foundation/_mixin.scss`(または`_mixin-js.scss`)に`@mixin js-○○`/`@mixin is-○○`として定義し各セレクタで`@include`。
@@ -68,8 +68,9 @@ foundation→layout→object(component→project→utility)→libの順で`@impo
 ## 適用範囲の調整(重要)
 
 - **ディレクトリ構成はフレームワーク準拠でよい**: Next.js/Nuxt/Rails等の規約とPDFLOCSSの`foundation/layout/object/...`ディレクトリ名が衝突する場合、物理ディレクトリ名の一致は問わない。判定するのは「役割の分離(初期化/構造/再利用部品/ページ固有/微調整)が命名やファイル構成のどこかで区別できているか」。
-- **Scoped CSS(CSS Modules, Vue/Svelte `<style scoped>`, styled-components等)はコンポーネント内で完結**: layout/project層のページ横断的スコープ管理は評価対象外(N/A)。評価すべきは以下がコンポーネント内で守られているか: シングルクラス設計、全タグへのクラス付与、クラスセレクタのみ(タグ/ID/深いネスト不使用)、BEM的なElement/Modifier表記、component層相当なら独立性(margin/固定幅高さ回避)。
-- N/Aにしたカテゴリは採点対象から除外し、残りカテゴリの配点比率を100点に再スケールする。
+- **Scoped CSS(CSS Modules, Vue/Svelte `<style scoped>`, styled-components等)はコンポーネント内で完結**: ページ横断的なスコープ管理はフレームワークが肩代わりしているため、下表の8カテゴリのうち**ディレクトリ/ファイル構成**と**レイヤー原則の遵守**の2カテゴリ(計25点)はN/Aとし、他の6カテゴリ(計75点)は通常通り適用する。
+  - 適用する6カテゴリの読み替え: 命名規則の一貫性(レイヤー接頭辞`l-`/`c-`/`p-`/`u-`は無くてよいが、BEMのElement/Modifier表記・ケバブケース・連番規則はそのまま適用) / 全タグへのクラス付与 / セレクタ規律 / Componentの独立性(margin・固定幅高さ回避はコンポーネント内でも同じ理由で有効) / JS連携規約(`.js-○○`/`.is-○○`の分離はスコープに関係なく適用) / タブー事項(`!important`不使用等はスコープに関係なく適用)。
+- N/Aにした2カテゴリは採点対象から除外し、残り75点を100点に比例配分で再スケールする(粒度はカテゴリ単位に固定し、実行者による判断のブレを無くす)。
 
 ## 採点基準(フル評価、100点満点)
 
@@ -82,7 +83,7 @@ foundation→layout→object(component→project→utility)→libの順で`@impo
 | レイヤー原則の遵守 | 15 | 各層の役割分離、component/project境界の混同がないか |
 | Componentの独立性 | 10 | margin無し・固定幅高さ回避・Modifier拡張・rule of three |
 | JS連携規約 | 5 | `.js-○○`にスタイルを入れていないか、`.is-○○`分離 |
-| タブー事項 | 5 | `!important`不使用、クラス直接`@extend`禁止、layoutでのproject上書き等 |
+| タブー事項 | 5 | `!important`不使用、クラス直接`@extend`禁止、projectからcomponentの子孫セレクタ上書き禁止(Component節参照) |
 
 N/Aカテゴリがある場合はそのカテゴリを除外し、残り配点の合計を100になるよう比例配分する。
 
