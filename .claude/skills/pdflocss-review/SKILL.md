@@ -5,7 +5,7 @@ description: Evaluate whether a project's CSS/SCSS (or CSS-in-JS / scoped CSS) a
 
 コードベースのCSSをPDFLOCSSと照合してスコア化し、具体的な修正点を報告する。編集は依頼された時のみ行う。
 
-ルール一覧・採点表: [PDFLOCSS-RULES.md](PDFLOCSS-RULES.md) — Step 3で読み込む(それより前には読まない)。
+ルール一覧・採点表: [references/PDFLOCSS-RULES.md](references/PDFLOCSS-RULES.md) — Step 3で読み込む(それより前には読まない)。
 
 ## 手順
 
@@ -19,7 +19,7 @@ description: Evaluate whether a project's CSS/SCSS (or CSS-in-JS / scoped CSS) a
 
 CSS設計上の判断を含むファイルを探す: `.css`/`.scss`/`.sass`/`.less`、加えてCSS-in-JS(styled-components/emotionのテンプレートリテラル)やscoped styleブロック(Vue/Svelte SFCの`<style>`、CSS Modulesの`*.module.css`)。PR対象の場合はdiffで変更されたファイルに限定する。
 
-**ディレクトリ構成・ファイル配置は基本的にプロジェクトのフレームワークが定める形に従ってよい**(website-starter-kit準拠プロジェクトのみ例外)。判定・詳細はPDFLOCSS-RULES.mdの「適用範囲の調整」参照(読み込みはStep 3)。
+**ディレクトリ構成・ファイル配置は基本的にプロジェクトのフレームワークが定める形に従ってよい**(website-starter-kit準拠プロジェクトのみ例外)。判定・詳細は`references/PDFLOCSS-RULES.md`の「適用範囲の調整」参照(読み込みはStep 3)。
 
 Scoped CSS(CSS Modules・`<style scoped>`・CSS-in-JS)の場合、コンポーネント*内*で適用されるべき事項のみを評価する。ただし**全てのタグにクラスを入れるルールは緩めない**。詳細・実装ルールは同じく「適用範囲の調整」参照。
 
@@ -27,7 +27,7 @@ Scoped CSS(CSS Modules・`<style scoped>`・CSS-in-JS)の場合、コンポー�
 
 ### 3. 評価する
 
-[PDFLOCSS-RULES.md](PDFLOCSS-RULES.md)をここで読み込む。収集した各ファイルを、そのスコープ(ファイル全体のCSSか、scoped component内のCSSか — 適用範囲の注記を参照)に該当する全ルールカテゴリと照合する。違反ごとに以下を記録する: file:line、該当コードの短い引用、違反しているルール、重大度(must-fix / should-fix / suggestion。ルールファイルの重大度指針に従う)。
+[references/PDFLOCSS-RULES.md](references/PDFLOCSS-RULES.md)をここで読み込む。収集した各ファイルを、そのスコープ(ファイル全体のCSSか、scoped component内のCSSか — 適用範囲の注記を参照)に該当する全ルールカテゴリと照合する。違反ごとに以下を記録する: file:line、該当コードの短い引用、違反しているルール、重大度(must-fix / should-fix / suggestion。ルールファイルの重大度指針に従う)。
 
 ルールファイルの採点表に従いカテゴリ別スコアと合計(0〜100)を算出する。該当プロジェクトのCSSアプローチ上N/Aのカテゴリがあれば、それを除いて再スケールする。
 
