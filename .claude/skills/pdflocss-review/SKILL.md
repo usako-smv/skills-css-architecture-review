@@ -7,13 +7,6 @@ description: Evaluate whether a project's CSS/SCSS (or CSS-in-JS / scoped CSS) a
 
 ルール一覧・採点表: [PDFLOCSS-RULES.md](PDFLOCSS-RULES.md) — Step 3で読み込む(それより前には読まない)。
 
-## 0. 担当エージェント(弊社独自ルール)
-
-このskillの実行担当は**Frontend Developer**エージェント(`.claude/agents/frontend-developer.md`)とする。
-
-- 現在Frontend Developerとして動作中でない場合 → Step 1〜5に進む前に、Agentツールで`subagent_type: "Frontend Developer"`のsubagentを起動する。プロンプトには対象(PR番号 or プロジェクト全体)とこの`SKILL.md`のパスを含め、`SKILL.md`と`PDFLOCSS-RULES.md`を読み込んでStep 1〜5を実行するよう指示する。結果を受け取り、ユーザーへ報告する。
-- 既にFrontend Developerとして動作中の場合(このskill自体がFrontend Developer subagent内で呼ばれた場合) → 二重に起動せず、そのままStep 1から自分で実行する。
-
 ## 手順
 
 ### 1. 対象を特定する
@@ -42,7 +35,7 @@ Scoped CSS(CSS Modules・`<style scoped>`・CSS-in-JS)の場合、コンポー�
 
 ### 4. 報告する
 
-- **PR対象の場合** → 報告本文をファイルに書き出し、`gh pr comment <number> --body-file <ファイル>`で投稿する(引用するCSSセレクタにはバッククォート・`$`・引用符が含まれ得るため、シェルのインライン`--body`文字列には直接埋め込まない)。構成: 合計スコア → カテゴリごとのサブスコアを1行ずつ → 重大度別(must-fixを先頭に)にグループ化した問題一覧、各項目にfile:lineと1行の修正案を添える。
+- **PR対象の場合** → 報告本文を`mktemp`等でプロジェクト外の一時ファイルに書き出し、`gh pr comment <number> --body-file <ファイル>`で投稿する(引用するCSSセレクタにはバッククォート・`$`・引用符が含まれ得るため、シェルのインライン`--body`文字列には直接埋め込まない。プロジェクト内に書くと誤ってコミットされる恐れがあるため一時ファイルを使う)。構成: 合計スコア → カテゴリごとのサブスコアを1行ずつ → 重大度別(must-fixを先頭に)にグループ化した問題一覧、各項目にfile:lineと1行の修正案を添える。
 - **プロジェクト全体対象の場合** → 同じ構成をこのセッション内にそのまま出力する(ファイルは作成せず、コメントも投稿しない) — 会話ログから確認する前提。
 
 スコアだけ、問題一覧だけでは半分の仕事にしかならない。両方揃って初めて実用的になる。
