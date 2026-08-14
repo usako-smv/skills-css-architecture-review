@@ -7,6 +7,13 @@ description: Evaluate whether a project's CSS/SCSS (or CSS-in-JS / scoped CSS) a
 
 ルール一覧・採点表: [PDFLOCSS-RULES.md](PDFLOCSS-RULES.md) — Step 3で読み込む(それより前には読まない)。
 
+## 0. 担当エージェント(弊社独自ルール)
+
+このskillの実行担当は**Frontend Developer**エージェント(`.claude/agents/frontend-developer.md`)とする。
+
+- 現在Frontend Developerとして動作中でない場合 → Step 1〜5に進む前に、Agentツールで`subagent_type: "Frontend Developer"`のsubagentを起動する。プロンプトには対象(PR番号 or プロジェクト全体)とこの`SKILL.md`のパスを含め、`SKILL.md`と`PDFLOCSS-RULES.md`を読み込んでStep 1〜5を実行するよう指示する。結果を受け取り、ユーザーへ報告する。
+- 既にFrontend Developerとして動作中の場合(このskill自体がFrontend Developer subagent内で呼ばれた場合) → 二重に起動せず、そのままStep 1から自分で実行する。
+
 ## 手順
 
 ### 1. 対象を特定する
