@@ -75,15 +75,15 @@ foundation→layout→object(component→project→utility)→libの順で`@impo
 
 ## 適用範囲の調整(重要)
 
-- **ディレクトリ構成はフレームワーク準拠でよい**: Next.js/Nuxt/Rails等の規約とPDFLOCSSの`foundation/layout/object/...`ディレクトリ名が衝突する場合、物理ディレクトリ名の一致は問わない。判定するのは「役割の分離(初期化/構造/再利用部品/ページ固有/微調整)が命名やファイル構成のどこかで区別できているか」。Astroの場合は下記「Astro(弊社独自ルール)」を正とする。
+- **ディレクトリ構成はフレームワーク準拠でよい**: Next.js/Nuxt/Rails等の規約とPDFLOCSSの`foundation/layout/object/...`ディレクトリ名が衝突する場合、物理ディレクトリ名の一致は問わない。判定するのは「役割の分離(初期化/構造/再利用部品/ページ固有/微調整)が命名やファイル構成のどこかで区別できているか」。**Astro自体はこの一般ルールの対象**であり、website-starter-kit準拠のプロジェクトの場合のみ下記「Astro + website-starter-kit(弊社独自ルール)」を正とする(判定方法は同節参照)。
 - **Scoped CSS(CSS Modules, Vue/Svelte `<style scoped>`, styled-components等)はコンポーネント内で完結**: ページ横断的なスコープ管理はフレームワークが肩代わりしているため、下表の8カテゴリのうち**ディレクトリ/ファイル構成**と**レイヤー原則の遵守**の2カテゴリ(計25点)はN/Aとし、他の6カテゴリ(計75点)は通常通り適用する。
   - 適用する6カテゴリの読み替え: 命名規則の一貫性(レイヤー接頭辞`l-`/`c-`/`p-`/`u-`はコンポーネント単体でも付与する — 単一コンポーネントの大半は再利用パーツなら`c-`、レイアウト用なら`l-`に該当。BEMのElement/Modifier表記・ケバブケース・連番規則も通常通り適用) / **全タグへのクラス付与(緩めない。スコープに関係なく必須)** / セレクタ規律 / Componentの独立性(margin・固定幅高さ回避はコンポーネント内でも同じ理由で有効) / JS連携規約(「JS連携(弊社独自ルール)」参照。スコープに関係なく適用) / タブー事項(`!important`不使用等はスコープに関係なく適用)。
   - **実装方法**: スタイルを追加する場合は`<style scoped>`内にクラスを宣言して実装する(インラインstyle属性や場当たり的な追加は不可)。Tailwindを導入している場合は、タグにユーティリティクラスを直接大量付与するのではなく、`<style scoped>`内で宣言したクラスに対し`@apply`でユーティリティを合成して実装する(シングルクラス設計を保つため)。
 - N/Aにした2カテゴリは採点対象から除外し、残り75点を100点に比例配分で再スケールする(粒度はカテゴリ単位に固定し、実行者による判断のブレを無くす)。
 
-### Astro(弊社独自ルール)
+### Astro + website-starter-kit(弊社独自ルール)
 
-出典: [website-starter-kit](https://github.com/sonicmoov/website-starter-kit)。
+出典: [website-starter-kit](https://github.com/sonicmoov/website-starter-kit)。**このセクションは、対象プロジェクトがwebsite-starter-kitに準拠している場合のみ適用する**(判定: `src/components/component/`と`src/components/layout/`が両方存在する、またはpackage.json/READMEでwebsite-starter-kit由来と明言されている、のいずれか)。website-starter-kitを使わないAstroプロジェクト(SPA等)は、Next.js/Nuxt/Rails等と同じく上の一般ルール(ディレクトリ構成はフレームワーク準拠でよい)を適用する。
 
 - ディレクトリ構成は[Astro公式のディレクトリ構成](https://docs.astro.build/ja/basics/project-structure/)に準拠する(PDFLOCSSの`foundation/layout/object/...`という物理ディレクトリを新設しない)。
 - 以下はPDFLOCSSから意図的に外れている割当てであり、減点対象にしない:
