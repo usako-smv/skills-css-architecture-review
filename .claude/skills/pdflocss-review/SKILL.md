@@ -1,0 +1,51 @@
+---
+name: pdflocss-review
+description: Evaluate whether a project's CSS/SCSS (or CSS-in-JS / scoped CSS) architecture follows PDFLOCSS — layer separation (foundation/layout/component/project/utility), MindBEMding naming, single-class-per-element, class-on-every-tag — and score it with actionable fixes. Then, only if asked, edit the source to apply those fixes. Use when the user wants a PDFLOCSS or CSS-design review of a specific PR (by number) or the whole project, or asks to fix/improve CSS to match PDFLOCSS.
+---
+
+コードベースのCSSをPDFLOCSSと照合してスコア化し、具体的な修正点を報告する。編集は依頼された時のみ行う。
+
+ルール一覧・採点表: [references/PDFLOCSS-RULES.md](references/PDFLOCSS-RULES.md) — Step 3で読み込む(それより前には読まない)。
+
+## 手順
+
+### 1. 対象を特定する
+
+- PR番号が指定された場合(ユーザーから、またはこのskillの引数として) → そのPRのdiffが対象。`gh pr diff <number>`と`gh pr view <number> --json files`で取得する。`docs/agents/issue-tracker.md`があればPR取得コマンドの部分だけ従う(triage専用のauthor除外フィルタ等は適用しない — ここはユーザーが直接指名したPRのレビュー)。
+- PR番号が無い場合 → プロジェクト全体のCSSが対象。
+- `gh pr diff <number>`が失敗する場合: まず`gh issue view <number>`を試し、issueとして存在すれば「#<number>はissueでありPRではないためレビュー対象なし」と報告して停止する。issueとしても存在しない・`gh`未認証等なら、そのエラーをそのまま報告して停止する(Step 2の「評価対象ファイルが無い」とは別の停止理由)。
+
+### 2. 評価対象ファイルを収集する
+
+CSS設計上の判断を含むファイルを探す: `.css`/`.scss`/`.sass`/`.less`、加えてCSS-in-JS(styled-components/emotionのテンプレートリテラル)やscoped styleブロック(Vue/Svelte SFCの`<style>`、CSS Modulesの`*.module.css`)。PR対象の場合はdiffで変更されたファイルに限定する。
+
+**ディレクトリ構成・ファイル配置は基本的にプロジェクトのフレームワークが定める形に従ってよい**(website-starter-kit準拠プロジェクトのみ例外)。判定・詳細は`references/PDFLOCSS-RULES.md`の「適用範囲の調整」参照(読み込みはStep 3)。
+
+Scoped CSS(CSS Modules・`<style scoped>`・CSS-in-JS)の場合、コンポーネント*内*で適用されるべき事項のみを評価する。ただし**全てのタグにクラスを入れるルールは緩めない**。詳細・実装ルールは同じく「適用範囲の調整」参照。
+
+**評価できる対象ファイルが無い場合**(プロジェクト全体を走査しても該当なし、またはPRがCSSを含むファイルに触れていない) → ここで停止する。何も評価対象が無いこととその理由を平易に報告する(例: 「対象PRにCSS変更なし」「CSS/SCSSファイルが見つからない」)。採点にも進まず、PRへのコメント・issueの作成も行わない。
+
+### 3. 評価する
+
+[references/PDFLOCSS-RULES.md](references/PDFLOCSS-RULES.md)をここで読み込む。収集した各ファイルを、そのスコープ(ファイル全体のCSSか、scoped component内のCSSか — 適用範囲の注記を参照)に該当する全ルールカテゴリと照合する。違反ごとに以下を記録する: file:line、該当コードの短い引用、違反しているルール、重大度(must-fix / should-fix / suggestion。ルールファイルの重大度指針に従う)。
+
+ルールファイルの採点表に従いカテゴリ別スコアと合計(0〜100)を算出する。該当プロジェクトのCSSアプローチ上N/Aのカテゴリがあれば、それを除いて再スケールする。
+
+対象ファイルが全て同じスコープ(全てフルCSS、または全てscoped CSS)なら合計は1本でよい。**フルCSSとscoped CSSが混在する場合は無理に1本の数値に統合せず、「フルCSS対象: n点」「scoped CSS対象: m点」と2本に分けて報告する**(異なる採点表を適用した数値を平均・合算すると意味を持たない数値になるため)。
+
+### 4. 報告する
+
+- **PR対象の場合** → 既存のそのPRが報告先。
+- **プロジェクト全体対象の場合** → 報告先のissueがまだ無いので、ここで`gh issue create`で作成する(例: タイトル「PDFLOCSSレビュー: プロジェクト全体」)。作成したissueを以降の報告先とする。
+
+報告本文を`mktemp`等でプロジェクト外の一時ファイルに書き出し、PR対象なら`gh pr comment <number> --body-file <ファイル>`、プロジェクト全体対象なら`gh issue comment <issue番号> --body-file <ファイル>`で投稿する(引用するCSSセレクタにはバッククォート・`$`・引用符が含まれ得るため、シェルのインライン`--body`文字列には直接埋め込まない。プロジェクト内に書くと誤ってコミットされる恐れがあるため一時ファイルを使う)。構成: 合計スコア → カテゴリごとのサブスコアを1行ずつ → 重大度別(must-fixを先頭に)にグループ化した問題一覧、各項目にfile:lineと1行の修正案を添える。
+
+スコアだけ、問題一覧だけでは半分の仕事にしかならない。両方揃って初めて実用的になる。
+
+### 5. 改善する(修正を依頼された時のみ)
+
+依頼されていない限りここは実施しない — ユーザーが別途「修正して」と依頼しない限り、手順1〜4が成果物の全てとなる。
+
+依頼された場合: must-fixから着手し、次にshould-fixに取り組む。修正はルールファイルが示す正しいPDFLOCSSパターンに沿って行う(単に違反箇所を削除するだけでなく、正しい接頭辞・正しいセレクタ・正しいレイヤーへと置き換える)。suggestionはユーザーが含めるよう指示しない限り対象外とする。
+
+編集後、変更したファイルに対してStep 3の評価を再実行し、修正前後のスコアと、どの問題を修正/スキップしたか(スキップした場合はその理由 — 例えばフレームワーク側の変更が必要でスコープ外、など)を報告する。報告先はStep 4で使ったのと同じPR/issueへの追加コメント(`gh pr comment`または`gh issue comment`)とし、「修正後」であることが分かるよう明示する。
